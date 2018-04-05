@@ -1,0 +1,23 @@
+extends ../layout
+
+block content
+  div.content(class="jumbotron vertical-center text-center")
+    h1(class="display-3")= title
+    br
+
+    div.containerAddTodos
+      h4 Modifier une tâche
+      form(method='POST' action='/todos/' + todoId + '?_method=patch')
+        div.form-group
+          label(for='nom') Nouveau nom de tâche :
+            input#nom.form-control(type='text', placeholder='Nom' name='nom')
+          br
+          label(for='description') Nouvelle description de tâche :
+            input#description.form-control(type='textarea', placeholder='Description' name='description')
+          br
+          label(for='completion') Tâche terminé ?
+            input#completion.form-control(type='checkbox', name='checkbox')
+          br
+          button.btn.btn-primary(type='submit' style='margin-right: 5px;') Enregistrer
+          a(href="/todos")
+            button(class="btn btn-secondary") Retour

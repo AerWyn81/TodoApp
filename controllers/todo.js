@@ -4,7 +4,7 @@ const routeur = express.Router()
 
 
 // Afficher les todos
-routeur.get('/', (req, res, next) =>{
+routeur.get('/', async (req, res, next) =>{
     if (req.query.offset != undefined && !isNaN(req.query.offset) && req.query.limit != undefined && !isNaN(req.query.limit))
     {
         var todoLimit = req.query.limit
@@ -21,7 +21,7 @@ routeur.get('/', (req, res, next) =>{
                 var json = {
                     todoLimit:req.query.limit,
                     todoOffset:req.query.offset,
-                    status:'get',
+                    status:'succes',
                     todos: getTodo
                 }
                 res.status(200)
@@ -34,7 +34,7 @@ routeur.get('/', (req, res, next) =>{
                 var json = {
                     todoLimit:req.query.limit,
                     todoOffset:req.query.offset,
-                    status:'get',
+                    status:'error',
                     error: err,
                     todos:"Hors index"
                 }
@@ -61,7 +61,7 @@ routeur.get('/', (req, res, next) =>{
             {
                 var json = {
                     completion:todoComplete == 0 ? "Non fait (0)" : "Fait (1)",
-                    status:'get',
+                    status:'succes',
                     todos: getTodo
                 }
                 res.status(200)
@@ -73,7 +73,7 @@ routeur.get('/', (req, res, next) =>{
             {
                 var json = {
                     completion:todoComplete == 0 ? "Non fait (0)" : "Fait (1)",
-                    status:'get',
+                    status:'error',
                     error: err,
                 }
                 res.status(501)
@@ -88,7 +88,7 @@ routeur.get('/', (req, res, next) =>{
             if(req.accepts("json" , "html") === "json")
             {
                 var json = {
-                    status:'get',
+                    status:'succes',
                     todos: getTodo
                 }
                 res.status(200)
@@ -99,7 +99,7 @@ routeur.get('/', (req, res, next) =>{
             if(req.accepts("json" , "html") === "json")
             {
                 var json = {
-                    status:'get',
+                    status:'error',
                     error: err,
                 }
                 res.status(501)
@@ -110,11 +110,16 @@ routeur.get('/', (req, res, next) =>{
     }
 })
 
+
+routeur.get('/add', async (req, res, next) => {
+    res.render('add', {title: "Ajouter une tâche"})
+})
+
 // Ajouter une todo
-routeur.post('/', (req, res, next) =>{
-    if (req.params.nom != "")
+routeur.post('/add', async (req, res, next) => {
+    if (req.body.nom != "")
     {
-        console.log(Date.now())
+
         todo.build(
             {
                 nom: req.body.nom,
@@ -123,7 +128,7 @@ routeur.post('/', (req, res, next) =>{
                 if(req.accepts("json" , "html") === "json")
                 {
                     var json = {
-                        status:'post',
+                        status:'succes',
                         ajout: "Tâche ajoutée avec succés !"
                     }
                     res.status(200)
@@ -135,7 +140,7 @@ routeur.post('/', (req, res, next) =>{
                         if(req.accepts("json" , "html") === "json")
                         {
                             var json = {
-                                status:'post',
+                                status:'succes',
                                 todos: getTodo
                             }
                             res.status(200)
@@ -146,7 +151,7 @@ routeur.post('/', (req, res, next) =>{
                         if(req.accepts("json" , "html") === "json")
                         {
                             var json = {
-                                status:'get',
+                                status:'error',
                                 error: err,
                             }
                             res.status(501)
@@ -159,7 +164,7 @@ routeur.post('/', (req, res, next) =>{
                 if(req.accepts("json" , "html") === "json")
                 {
                     var json = {
-                        status:'get',
+                        status:'error',
                         ajout: "Échec de l'ajout de la tâche",
                         error: err,
                     }
@@ -171,12 +176,16 @@ routeur.post('/', (req, res, next) =>{
     }
     else
     {
-        return res.status(501).render('index', {title: "Ma Todolist", todos: [], moment: require('moment'), noTodoFound:true, error: "Le champs \"Nom de la tâche\" doit être rempli !"}) 
+        res.redirect('/');
     }
 })
 
+routeur.get('/:todoId/edit', async (req, res, next) => {
+    res.render('edit', {title: "Ma Todolist", todoId: req.params.todoId})
+})
+
 // Récupérer une todo
-routeur.get('/:todoId', (req, res, next) =>{
+routeur.get('/:todoId', async (req, res, next) =>{
     var todoId = req.params.todoId
     
     todo.findAll(
@@ -184,38 +193,53 @@ routeur.get('/:todoId', (req, res, next) =>{
             where: { id:todoId },
             raw: true
         }).then(function(getTodo) {
+            if (getTodo.length == 0)
+            {
+                if(req.accepts("json" , "html") === "json")
+                {
+                    var json = {
+                        status:'succes',
+                        id: todoId,
+                        todo: "Pas de tâche avec cet ID"
+                    }
+                    res.status(200)
+                    return res.send(JSON.stringify(json))
+                }
+                else return res.status(200).render('show', {title: "Ma Todolist", todos: getTodo, moment: require('moment'), noTodoFound:true, error: "Pas de tâche trouvée pour cet ID !"}) 
+            }
+
             if(req.accepts("json" , "html") === "json")
             {
                 var json = {
-                    status:'get',
+                    status:'succes',
                     id: todoId,
                     todo: getTodo
                 }
                 res.status(200)
                 return res.send(JSON.stringify(json))
             }
-            else return res.status(200).render('index', {title: "Ma Todolist", todos: getTodo, moment: require('moment')}) 
+            else return res.status(200).render('show', {title: "Ma Todolist", todos: getTodo, moment: require('moment')}) 
         }).catch((err) => {
             if(req.accepts("json" , "html") === "json")
             {
                 var json = {
-                    status:'get',
+                    status:'error',
                     error: err,
                 }
                 res.status(501)
                 return res.send(JSON.stringify(json))
             }
-            else return res.status(501).render('index', {title: "Ma Todolist", todos: [], moment: require('moment'), noTodoFound:true, error: "Erreur serveur : \n" + err}) 
+            else return res.status(501).render('show', {title: "Ma Todolist", todos: [], moment: require('moment'), noTodoFound:true, error: "Erreur serveur : \n" + err}) 
         })
 })
 
 // Lister tous les todos avec Pagination
-routeur.get('/:limit/:offset', (req, res, next) => {
+routeur.get('/:limit/:offset', async (req, res, next) => {
     //Je n'ai pas trouvé le moyen de faire une route avec les arguments, donc je traite la pagination dans la route get('/')...
 })
 
 // Supprimer une todo
-routeur.delete('/:todoId', (req, res) => {
+routeur.delete('/:todoId', async (req, res) => {
     var todoId = req.params.todoId
     todo.destroy({
         where: {
@@ -226,7 +250,7 @@ routeur.delete('/:todoId', (req, res) => {
             if(req.accepts("json" , "html") === "json")
             {
                 var json = {
-                    status:'delete',
+                    status:'succes',
                     id: todoId,
                     Suppression: "OK"
                 }
@@ -239,18 +263,18 @@ routeur.delete('/:todoId', (req, res) => {
                     if(req.accepts("json" , "html") === "json")
                     {
                         var json = {
-                            status:'post',
+                            status:'succes',
                             todos: getTodo
                         }
                         res.status(200)
                         return res.send(JSON.stringify(json))
                     }
-                    else return res.status(200).render('index', {title: "Ma Todolist", todos: getTodo, moment: require('moment'), todoSuccess:true, success:"Tâche suppérimée avec succés !"}) 
+                    else return res.status(200).render('index', {title: "Ma Todolist", todos: getTodo, moment: require('moment'), todoSuccess:true, success:"Tâche supprimée avec succés !"}) 
                 }).catch((err) => {
                     if(req.accepts("json" , "html") === "json")
                     {
                         var json = {
-                            status:'get',
+                            status:'error',
                             error: err,
                         }
                         res.status(501)
@@ -264,7 +288,7 @@ routeur.delete('/:todoId', (req, res) => {
         if(req.accepts("json" , "html") === "json")
         {
             var json = {
-                status:'delete',
+                status:'error',
                 error: err,
             }
             res.status(501) 
@@ -275,8 +299,11 @@ routeur.delete('/:todoId', (req, res) => {
 })
 
 // Éditer une todo (la passer en done par exemple)
-routeur.patch('/:todoId', (req, res, next) => {
+routeur.patch('/:todoId', async (req, res, next) => {
     var todoId = req.params.todoId
+    var newNom = req.body.nom
+    var newDesc = req.body.description
+    var newComplet = req.body.checkbox ? true : false
     var isComplete
 
     todo.find({
@@ -284,13 +311,23 @@ routeur.patch('/:todoId', (req, res, next) => {
             id: todoId
         }
     }).then(function(getTodo) {
-        isComplete = getTodo.completion
+        if (getTodo == null)
+        {
+            res.redirect('/')
+            return
+        }
 
-        if (isComplete == 1) isComplete = 0
-        else isComplete = 1
+        isComplete = getTodo.completion
+        if (newNom == undefined) newNom = getTodo.nom
+        if (newDesc == undefined) newDesc = getTodo.description
+        if (!newComplet && isComplete) isComplete = false
+        else if (!newComplet && !isComplete) isComplete = true
+        else if (newComplet && !isComplete) isComplete = true
     
         todo.update({
             completion: isComplete,
+            nom: newNom,
+            description: newDesc,
             updatedAt: Date.now()
         },
         {   where: {
@@ -301,7 +338,7 @@ routeur.patch('/:todoId', (req, res, next) => {
             if(req.accepts("json" , "html") === "json")
             {
                 var json = {
-                    status:'patch',
+                    status:'succes',
                     ajout: "Modification effectuée avec succés !",
                     completion: isComplete
                 }
@@ -314,7 +351,7 @@ routeur.patch('/:todoId', (req, res, next) => {
                     if(req.accepts("json" , "html") === "json")
                     {
                         var json = {
-                            status:'patch',
+                            status:'succes',
                             todos: getTodo
                         }
                         res.status(200)
@@ -325,7 +362,7 @@ routeur.patch('/:todoId', (req, res, next) => {
                     if(req.accepts("json" , "html") === "json")
                     {
                         var json = {
-                            status:'patch',
+                            status:'error',
                             error: err,
                         }
                         res.status(501)
@@ -338,7 +375,7 @@ routeur.patch('/:todoId', (req, res, next) => {
             if(req.accepts("json" , "html") === "json")
             {
                 var json = {
-                    status:'patch',
+                    status:'error',
                     ajout: "Échec de la modification de la tâche",
                     error: err,
                 }

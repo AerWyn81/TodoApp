@@ -8,18 +8,15 @@ block content
     if noTodoFound
       div.containerErr(class="alert alert-danger")
         p= error
+        a(href="/todos")
+            button(class="btn btn-secondary") Retour
 
     if todoSuccess
       div.containerErr(class="alert alert-success")
         p= success
 
-    br
-    div.containerAddTask
-      a(href="/todos/add")
-        button(class="btn btn-info") Ajouter une tâche
-
     br 
-    h4 Visualiser vos tâches enregistrées
+    h4 Visualiser la tâche
     div.contairerTodos
     table(class="table")
       tr

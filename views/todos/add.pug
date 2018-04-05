@@ -1,0 +1,20 @@
+extends ../layout
+
+block content
+  div.content(class="jumbotron vertical-center text-center")
+    h1(class="display-3")= title
+    br
+
+    div.containerAddTodos
+      h4 Ajouter une nouvelle tâche
+      form(method='POST' action='/todos/add')
+        div.form-group
+          label(for='nom') Nom de la tâche à faire :
+            input#nom.form-control(type='text', placeholder='Nom' name='nom')
+          br
+          label(for='description') Description de la tâche :
+            input#description.form-control(type='textarea', placeholder='Description' name='description')
+          br
+          button.btn.btn-primary(type='submit' style='margin-right: 5px;') Enregistrer
+          a(href="/todos")
+            button(class="btn btn-secondary") Retour
