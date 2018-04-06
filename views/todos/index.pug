@@ -5,6 +5,10 @@ block content
     h1(class="display-3")= title
     br
 
+    if connected
+      div.containerConn(class="alert alert-success")
+        p= conn
+
     if noTodoFound
       div.containerErr(class="alert alert-danger")
         p= error

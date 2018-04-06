@@ -1,0 +1,14 @@
+extends ../layout
+
+block content
+  div.content(class="jumbotron vertical-center text-center")
+    h1(class="display-3") Ma Todolist - Page d'accueil WEB
+    br
+
+    p Bienvenue sur l'interface web de gestion de tâche. 
+    p Veuillez vous identifier ou créer un compte pour continuer.
+    br
+    a(href="/register")
+      button(class="btn btn-warning" style='margin-right: 5px;') Inscription
+    a(href="/login")
+      button(class="btn btn-success") Connexion

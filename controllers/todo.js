@@ -119,7 +119,6 @@ routeur.get('/add', async (req, res, next) => {
 routeur.post('/add', async (req, res, next) => {
     if (req.body.nom != "")
     {
-
         todo.build(
             {
                 nom: req.body.nom,

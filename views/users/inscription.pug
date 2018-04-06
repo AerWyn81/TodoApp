@@ -1,0 +1,35 @@
+extends ../layout
+
+block content
+  div.containerLogin(class="jumbotron vertical-center text-center")
+    h1(class="display-3") Inscription
+    br
+
+    if error
+      div.containerErr(class="alert alert-danger")
+        p= errorMsg
+
+    if success
+      div.containerErr(class="alert alert-success")
+        p= successMsg
+        a(href="/login")
+            button(class="btn btn-success") Connexion
+
+    form(method='POST' action='/register')
+        div.form-group
+            br
+            label(for='nom') Nom
+                input.form-control(type='text' id='nom' placeholder='Nom' name='nom')
+            br
+            label(for='prenom') Prénom
+                input.form-control(type='text' id='prenom' placeholder='Prénom' name='prenom')
+            br
+            label(for='email') Adresse email
+                input.form-control(type='text' id='email' placeholder='Email' name='email')
+            br
+            label(for='password') Mot de passe
+                input.form-control(type='password' id='password' placeholder='Mot de passe' name='password')
+            br
+            label(for='password2') Répéter votre mot de passe
+                input.form-control(type='password' id='password2' placeholder='Mot de passe' name='password2')
+        button(type='submit' class="btn btn-primary") Connexion
