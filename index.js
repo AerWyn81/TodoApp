@@ -5,6 +5,7 @@ var methodOverride = require('method-override')
 var bcrypt = require("bcrypt");
 const users = require('./models/users')
 const todo = require('./models/todo')
+const session = require('express-session');
 
 const PORT = process.env.PORT || 8080
 
@@ -14,6 +15,8 @@ app.set('views', path.join(__dirname, '/views/todos'))
 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json({ extended: true }))
+
+app.use(session({secret: "secretKey"}));
 
 // Override pour les méthodes PATCH et DELETE
 app.use(methodOverride('_method', { methods: [ 'POST', 'GET' ] }))
@@ -123,6 +126,8 @@ app.post('/login', (req, res, next) => {
 
           if (bcrypt.compareSync(req.body.password, hashDB))
           {
+            req.session.connected = true;
+
             todo.findAll().then(function(todos) {
               return res.render('index', {title: "Ma Todolist", todos: todos, moment: require('moment'), connected:true, conn:"Connexion réussie ! Bienvenue :" + req.body.prenom})          }).catch((err) => {
             })
@@ -142,7 +147,16 @@ app.post('/login', (req, res, next) => {
 
 app.all('*', (req, res, next) => {
   //check session pour voir s'il est déjà connecté
-  res.render('../users/home')
+  if (req.session.connected)
+  {
+    todo.findAll().then(function(todos) {
+      return res.render('index', {title: "Ma Todolist", todos: todos, moment: require('moment'), connected:true, conn:"Connexion réussie ! Bienvenue :" + req.body.prenom})          }).catch((err) => {
+    })
+  }
+  else
+  {
+    res.render('../users/home')
+  }
 })
 
 // Redirection vers /todos
